@@ -16,8 +16,8 @@
 
 | # | หัวข้อ | ทำอะไรบ้าง | สถานะ |
 |---|--------|-----------|-------|
-| 01 | [Static Routing](lab01-static-routing) | ตั้ง route ให้ 2 เครือข่ายคุยกัน | เสร็จแล้ว |
-| 02 | [Syslog + NTP](lab02-syslog-ntp) | เก็บ log และตั้งเวลาให้ตรงกัน | เสร็จแล้ว |
+| 01 | [Static Routing](lab01-static-routing) | ตั้ง route ให้ 2 เครือข่ายคุยกัน | กำลังทำ |
+| 02 | [Syslog + NTP](lab02-syslog-ntp) | เก็บ log และตั้งเวลาให้ตรงกัน | กำลังทำ |
 | 03 | [Basic Config](lab03-basic-config) | SSH, password, port security | กำลังทำ |
 
 ## Tools
