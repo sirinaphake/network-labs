@@ -70,9 +70,9 @@ wr
 ```
 
 ## คำสั่งตรวจสอบ
-```
-ที่ R1
 
+ที่ R1
+```
 show ip interface brief
 show ip route
 ping 10.0.0.2
