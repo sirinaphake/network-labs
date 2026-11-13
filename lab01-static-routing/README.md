@@ -1,33 +1,85 @@
-# lab01-static-routing
+# Lab 01: Static Routing
 
-# Network Labs
+## เป้าหมาย
 
-รวมแลปเครือข่ายที่ทำด้วย Cisco Packet Tracer ระหว่างเตรียมตัวเข้าสายงาน Network / NetOps
+ตั้งค่า static route ให้ PC ในสองเครือข่ายติดต่อกันได้ ผ่าน Router 2 ตัว
 
-## เกี่ยวกับผม
+## ผังเครือข่าย
 
-ศิรินภา แก้วกัณหา (ตอง) จบวิศวกรรมคอมพิวเตอร์ มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน วิทยาเขตสกลนคร
-เคยฝึกงานที่ NT และทำสหกิจตำแหน่ง IT ที่ กฟภ. ดูแลเรื่อง LAN, CCTV และระบบโทรศัพท์
-ตอนนี้กำลังเรียนเพิ่มด้าน network และอ่านเตรียมสอบ CCNA อยู่
+![topology](topology.png)
 
-อีเมล: sirinapha.ke@gmail.com
+## ตาราง IP
 
-## Labs
+| อุปกรณ์ | Interface | IP | Mask | Gateway |
+|---------|-----------|----|------|---------|
+| PC0 | NIC | 192.168.1.10 | 255.255.255.0 | 192.168.1.1 |
+| R1 | G0/0 | 192.168.1.1 | 255.255.255.0 | - |
+| R1 | G0/1 | 10.0.0.1 | 255.255.255.252 | - |
+| R2 | G0/1 | 10.0.0.2 | 255.255.255.252 | - |
+| R2 | G0/0 | 192.168.2.1 | 255.255.255.0 | - |
+| PC1 | NIC | 192.168.2.10 | 255.255.255.0 | 192.168.2.1 |
 
-| # | หัวข้อ | ทำอะไรบ้าง | สถานะ |
-|---|--------|-----------|-------|
-| 01 | [Static Routing](lab01-static-routing) | ตั้ง route ให้ 2 เครือข่ายคุยกัน | กำลังทำ |
-| 02 | [Syslog + NTP](lab02-syslog-ntp) | เก็บ log และตั้งเวลาให้ตรงกัน | กำลังทำ |
-| 03 | [Basic Config](lab03-basic-config) | SSH, password, port security | กำลังทำ |
+## ขั้นตอนที่ทำ
 
-## Tools
+1. ต่อสายตามผัง แล้วตั้ง IP ที่ทุก interface และเปิด interface ด้วย `no shutdown`
+2. ตั้ง static route ที่ R1 และ R2 ให้ชี้ไปหาเครือข่ายฝั่งตรงข้าม
+3. ทดสอบ ping จาก PC0 ไป PC1 และตรวจ routing table
 
-ตอนนี้ใช้ Cisco Packet Tracer อย่างเดียว ที่จะลองต่อไปคือ LibreNMS กับ Python (Netmiko)
+## คำสั่งสำคัญ
 
-## Roadmap
+ตั้ง IP ที่ R1
 
-- [ ] VLAN + Inter-VLAN routing
-- [ ] DHCP + NAT
-- [ ] OSPF + ACL
-- [ ] Monitoring ด้วย LibreNMS
-- [ ] Python automation (backup config)
+```
+R1> enable
+R1# configure terminal
+R1(config)# interface g0/0
+R1(config-if)# ip address 192.168.1.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)# exit
+R1(config)# interface g0/1
+R1(config-if)# ip address 10.0.0.1 255.255.255.252
+R1(config-if)# no shutdown
+R1(config-if)# exit
+```
+
+ตั้ง static route ที่ R1 (ไปเครือข่าย 192.168.2.0 ผ่าน R2)
+
+```
+R1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.2
+```
+
+ตั้ง IP และ static route ที่ R2
+
+```
+R2(config)# interface g0/1
+R2(config-if)# ip address 10.0.0.2 255.255.255.252
+R2(config-if)# no shutdown
+R2(config-if)# exit
+R2(config)# interface g0/0
+R2(config-if)# ip address 192.168.2.1 255.255.255.0
+R2(config-if)# no shutdown
+R2(config-if)# exit
+R2(config)# ip route 192.168.1.0 255.255.255.0 10.0.0.1
+```
+
+บันทึกค่า
+
+```
+R1# copy running-config startup-config
+```
+
+คำสั่งตรวจสอบ
+
+```
+R1# show ip route
+R1# show ip interface brief
+R1# ping 10.0.0.2
+C:\> ping 192.168.2.10
+C:\> tracert 192.168.2.10
+```
+
+ใน `show ip route` เส้นทางที่ตั้งเองจะขึ้นเป็น `S` ส่วนเครือข่ายที่ต่ออยู่ตรงจะขึ้นเป็น `C`
+
+## ปัญหาที่เจอ
+
+(ถ้ามี ให้เขียนเพิ่ม เช่น ping ไม่ผ่านเพราะลืมตั้ง gateway ที่ PC หรือลืม `no shutdown`)
