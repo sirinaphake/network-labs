@@ -6,7 +6,7 @@
 
 ## ผังเครือข่าย
 
-![topology](topology.png)
+![Screenshot 2026-11-14 014359](Screenshot 2026-11-14 014359.png)
 
 ## ตาราง IP
 
