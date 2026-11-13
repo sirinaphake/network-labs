@@ -10,13 +10,14 @@
 
 ## ตาราง IP
 
-อุปกรณ์	Interface	IP	Subnet Mask	Gateway
-PC0	FastEthernet0	192.168.1.10	255.255.255.0	192.168.1.1
-R1	G0/0	192.168.1.1	255.255.255.0	-
-R1	G0/1	10.0.0.1	255.255.255.252	-
-R2	G0/1	10.0.0.2	255.255.255.252	-
-R2	G0/0	192.168.2.1	255.255.255.0	-
-PC1	FastEthernet0	192.168.2.10	255.255.255.0	192.168.2.1
+| อุปกรณ์ | Interface | IP | Subnet Mask | Gateway |
+|---------|-----------|----|-------------|---------|
+| PC0 | FastEthernet0 | 192.168.1.10 | 255.255.255.0 | 192.168.1.1 |
+| R1 | G0/0 | 192.168.1.1 | 255.255.255.0 | - |
+| R1 | G0/1 | 10.0.0.1 | 255.255.255.252 | - |
+| R2 | G0/1 | 10.0.0.2 | 255.255.255.252 | - |
+| R2 | G0/0 | 192.168.2.1 | 255.255.255.0 | - |
+| PC1 | FastEthernet0 | 192.168.2.10 | 255.255.255.0 | 192.168.2.1 |
 
 ## ขั้นตอนที่ทำ
 
@@ -24,61 +25,60 @@ PC1	FastEthernet0	192.168.2.10	255.255.255.0	192.168.2.1
 2. ตั้ง static route ที่ R1 และ R2 ให้ชี้ไปหาเครือข่ายฝั่งตรงข้าม
 3. ทดสอบ ping จาก PC0 ไป PC1 และตรวจ routing table
 
-## คำสั่งสำคัญ
+## คำสั่งที่ใช้
 
-ตั้ง IP ที่ R1
+R1 (ตั้ง IP, static route ไปเครือข่าย 192.168.2.0 ผ่าน R2 และบันทึก)
 
-```
-R1> enable
-R1# configure terminal
-R1(config)# interface g0/0
-R1(config-if)# ip address 192.168.1.1 255.255.255.0
-R1(config-if)# no shutdown
-R1(config-if)# exit
-R1(config)# interface g0/1
-R1(config-if)# ip address 10.0.0.1 255.255.255.252
-R1(config-if)# no shutdown
-R1(config-if)# exit
-```
+en
+conf t
+host R1
+int gig0/1
+ip add 10.0.0.1 255.255.255.252
+no sh
+ex
+int gig0/0
+ip add 192.168.1.1 255.255.255.0
+no sh
+ex
+ip route 192.168.2.0 255.255.255.0 10.0.0.2
+end
+wr
 
-ตั้ง static route ที่ R1 (ไปเครือข่าย 192.168.2.0 ผ่าน R2)
+R2 (ตั้ง IP, static route ไปเครือข่าย 192.168.1.0 ผ่าน R1 และบันทึก)
 
-```
-R1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.2
-```
+en
+conf t
+host R2
+int gig0/1
+ip add 10.0.0.2 255.255.255.252
+no sh
+ex
+int gig0/0
+ip add 192.168.2.1 255.255.255.0
+no sh
+ex
+ip route 192.168.1.0 255.255.255.0 10.0.0.1
+end
+wr
 
-ตั้ง IP และ static route ที่ R2
+## คำสั่งตรวจสอบ
 
-```
-R2(config)# interface g0/1
-R2(config-if)# ip address 10.0.0.2 255.255.255.252
-R2(config-if)# no shutdown
-R2(config-if)# exit
-R2(config)# interface g0/0
-R2(config-if)# ip address 192.168.2.1 255.255.255.0
-R2(config-if)# no shutdown
-R2(config-if)# exit
-R2(config)# ip route 192.168.1.0 255.255.255.0 10.0.0.1
-```
+ที่ R1
 
-บันทึกค่า
+show ip interface brief
+show ip route
+ping 10.0.0.2
 
-```
-R1# copy running-config startup-config
-```
 
-คำสั่งตรวจสอบ
+ที่ PC0 (Command Prompt)
 
-```
-R1# show ip route
-R1# show ip interface brief
-R1# ping 10.0.0.2
-C:\> ping 192.168.2.10
-C:\> tracert 192.168.2.10
-```
+ping 192.168.2.10
+tracert 192.168.2.10
+
 
 ใน `show ip route` เส้นทางที่ตั้งเองจะขึ้นเป็น `S` ส่วนเครือข่ายที่ต่ออยู่ตรงจะขึ้นเป็น `C`
 
 ## ปัญหาที่เจอ
 
-(ถ้ามี ให้เขียนเพิ่ม เช่น ping ไม่ผ่านเพราะลืมตั้ง gateway ที่ PC หรือลืม `no shutdown`)
+- ตอนตั้ง static route ครั้งแรก ผมใส่ปลายทางเป็น `192.168.2.1` กับ mask 255.255.255.0 router ตอบ `%Inconsistent address and mask` เพราะปลายทางต้องเป็นเลขเครือข่าย (`192.168.2.0`) ไม่ใช่ IP ของ host แก้เป็น `ip route 192.168.2.0 255.255.255.0 10.0.0.2` แล้วผ่าน
+- พิมพ์คำสั่งผิดหลายครั้ง เช่น `itn` แทน `int` และเผลอสั่ง `wr er` ซึ่งลบ config ทิ้ง ต้องตั้งค่าใหม่ ต่อไปจะดูให้ดีก่อนกด Enter
