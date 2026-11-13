@@ -70,19 +70,19 @@ wr
 ```
 
 ## คำสั่งตรวจสอบ
-
+```
 ที่ R1
 
 show ip interface brief
 show ip route
 ping 10.0.0.2
-
+```
 
 ที่ PC0 (Command Prompt)
-
+```
 ping 192.168.2.10
 tracert 192.168.2.10
-
+```
 
 ใน `show ip route` เส้นทางที่ตั้งเองจะขึ้นเป็น `S` ส่วนเครือข่ายที่ต่ออยู่ตรงจะขึ้นเป็น `C`
 
